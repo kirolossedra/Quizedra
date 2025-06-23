@@ -35,13 +35,16 @@
           return;
         }
 
+        const today = new Date().toISOString().split("T")[0]; // YYYY-MM-DD
+
         const newRef = push(ref(db, "game"));
         await set(newRef, {
           user: user,
-          comment: comment
+          comment: comment,
+          date: today
         });
 
-        alert("✅ Game comment submitted");
+        alert("✅ Comment submitted with date");
         userInput.value = "";
         commentInput.value = "";
         userInput.focus();
