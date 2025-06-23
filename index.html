@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meeting Feedback - Master Display</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header h1 {
+            color: white;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 1.2rem;
+        }
+
+        .qr-section {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .qr-container {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            transform: scale(1);
+            transition: transform 0.3s ease;
+        }
+
+        .qr-container:hover {
+            transform: scale(1.05);
+        }
+
+        .qr-container h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        #qrcode {
+            margin: 20px 0;
+        }
+
+        .qr-container p {
+            color: #666;
+            font-size: 1rem;
+            margin-top: 15px;
+        }
+
+        .bubbles-container {
+            flex: 1;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bubble {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 25px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 300px;
+            animation: bubbleFloat 0.8s ease-out;
+            transform-origin: bottom center;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .bubble .name {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        .bubble .message {
+            color: #333;
+            font-size: 1rem;
+            line-height: 1.4;
+        }
+
+        .bubble .timestamp {
+            color: #999;
+            font-size: 0.8rem;
+            margin-top: 8px;
+            text-align: right;
+        }
+
+        @keyframes bubbleFloat {
+            0% {
+                transform: translateY(100px) scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: translateY(-20px) scale(1.1);
+                opacity: 0.8;
+            }
+            100% {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes bubblePop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .bubble.new {
+            animation: bubbleFloat 0.8s ease-out, bubblePop 0.3s ease-out 0.8s;
+        }
+
+        .stats {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎯 Meeting Feedback</h1>
+        <p>Scan the QR code to share your thoughts!</p>
+    </div>
+
+    <div class="qr-section">
+        <div class="qr-container pulse">
+            <h2>📱 Join the Discussion</h2>
+            <div id="qrcode"></div>
+            <p>Scan with your phone camera</p>
+        </div>
+    </div>
+
+    <div class="stats">
+        <div>💬 Messages: <span id="messageCount">0</span></div>
+        <div>👥 Participants: <span id="participantCount">0</span></div>
+    </div>
+
+    <div class="bubbles-container" id="bubblesContainer">
+        <!-- Bubbles will appear here -->
+    </div>
+
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+    
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, onValue, push } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6sAqOZgVLKzuAcCAwZFl8BKAZQXiZCEk",
+            authDomain: "the-human-project-9e969.firebaseapp.com",
+            databaseURL: "https://the-human-project-9e969-default-rtdb.firebaseio.com",
+            projectId: "the-human-project-9e969",
+            storageBucket: "the-human-project-9e969.firebasestorage.app",
+            messagingSenderId: "135618599099",
+            appId: "1:135618599099:web:5a687730ce1227b4ee719e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Generate QR Code
+        const currentUrl = window.location.href;
+        const feedbackUrl = currentUrl.replace('index.html', 'index2.html').replace(/\/$/, '/index2.html');
+        
+        QRCode.toCanvas(document.getElementById('qrcode'), feedbackUrl, {
+            width: 200,
+            height: 200,
+            colorDark: '#667eea',
+            colorLight: '#ffffff',
+            margin: 2
+        });
+
+        // Bubble sound effect
+        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        
+        function playBubbleSound() {
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+            oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+            
+            gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioContext.currentTime + 0.3);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.3);
+        }
+
+        // Listen for new messages
+        const messagesRef = ref(database, 'thegame/messages');
+        const participants = new Set();
+        let messageCount = 0;
+
+        onValue(messagesRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const messages = Object.entries(data).map(([key, value]) => ({
+                    id: key,
+                    ...value
+                }));
+
+                // Sort by timestamp
+                messages.sort((a, b) => b.timestamp - a.timestamp);
+
+                // Update stats
+                messageCount = messages.length;
+                participants.clear();
+                messages.forEach(msg => participants.add(msg.name));
+                
+                document.getElementById('messageCount').textContent = messageCount;
+                document.getElementById('participantCount').textContent = participants.size;
+
+                // Clear existing bubbles
+                const container = document.getElementById('bubblesContainer');
+                container.innerHTML = '';
+
+                // Display bubbles
+                messages.forEach((message, index) => {
+                    setTimeout(() => {
+                        createBubble(message, index);
+                        playBubbleSound();
+                    }, index * 200);
+                });
+            }
+        });
+
+        function createBubble(message, index) {
+            const bubble = document.createElement('div');
+            bubble.className = 'bubble new';
+            
+            const containerWidth = window.innerWidth - 40;
+            const containerHeight = window.innerHeight - 300;
+            
+            const x = Math.random() * (containerWidth - 300);
+            const y = Math.random() * (containerHeight - 100);
+            
+            bubble.style.left = x + 'px';
+            bubble.style.top = y + 'px';
+            
+            const date = new Date(message.timestamp);
+            const timeString = date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+            
+            bubble.innerHTML = `
+                <div class="name">${message.name}</div>
+                <div class="message">${message.message}</div>
+                <div class="timestamp">${timeString}</div>
+            `;
+            
+            document.getElementById('bubblesContainer').appendChild(bubble);
+            
+            // Remove bubble after 10 seconds
+            setTimeout(() => {
+                if (bubble.parentNode) {
+                    bubble.style.opacity = '0';
+                    bubble.style.transform = 'scale(0)';
+                    setTimeout(() => {
+                        if (bubble.parentNode) {
+                            bubble.parentNode.removeChild(bubble);
+                        }
+                    }, 500);
+                }
+            }, 10000);
+        }
+
+        // Enable audio context on first user interaction
+        document.addEventListener('click', () => {
+            if (audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+        });
+    </script>
+</body>
+</html>
