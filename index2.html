@@ -1,1 +1,355 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Share Your Feedback</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #667eea;
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1.1rem;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        label {
+            display: block;
+            color: #333;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 1.1rem;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .submit-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            color: #667eea;
+            font-weight: bold;
+        }
+
+        .success {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border-radius: 10px;
+            font-weight: bold;
+            animation: successPulse 0.5s ease-out;
+        }
+
+        @keyframes successPulse {
+            0% { transform: scale(0.9); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .error {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
+            color: white;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .char-count {
+            text-align: right;
+            font-size: 0.9rem;
+            color: #999;
+            margin-top: 5px;
+        }
+
+        .form-animation {
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .emoji {
+            font-size: 1.5rem;
+            margin-right: 10px;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+            
+            .header h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container form-animation">
+        <div class="header">
+            <h1><span class="emoji">💭</span>Share Your Thoughts</h1>
+            <p>Your feedback will appear live on the main screen!</p>
+        </div>
+
+        <form id="feedbackForm">
+            <div class="form-group">
+                <label for="name"><span class="emoji">👤</span>Your Name</label>
+                <input type="text" id="name" name="name" required placeholder="Enter your name...">
+            </div>
+
+            <div class="form-group">
+                <label for="message"><span class="emoji">💬</span>Your Feedback</label>
+                <textarea id="message" name="message" required placeholder="Share your thoughts, questions, or feedback..."></textarea>
+                <div class="char-count">
+                    <span id="charCount">0</span>/500 characters
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn" id="submitBtn">
+                <span class="emoji">🚀</span>Send Feedback
+            </button>
+        </form>
+
+        <div class="loading" id="loading">
+            <span class="emoji">⏳</span>Sending your feedback...
+        </div>
+
+        <div class="success" id="success">
+            <span class="emoji">✅</span>Thank you! Your feedback has been shared!
+        </div>
+
+        <div class="error" id="error">
+            <span class="emoji">❌</span>Something went wrong. Please try again.
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, push, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC6sAqOZgVLKzuAcCAwZFl8BKAZQXiZCEk",
+            authDomain: "the-human-project-9e969.firebaseapp.com",
+            databaseURL: "https://the-human-project-9e969-default-rtdb.firebaseio.com",
+            projectId: "the-human-project-9e969",
+            storageBucket: "the-human-project-9e969.firebasestorage.app",
+            messagingSenderId: "135618599099",
+            appId: "1:135618599099:web:5a687730ce1227b4ee719e"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        // Character counter
+        const messageInput = document.getElementById('message');
+        const charCount = document.getElementById('charCount');
+
+        messageInput.addEventListener('input', function() {
+            const length = this.value.length;
+            charCount.textContent = length;
+            
+            if (length > 500) {
+                this.value = this.value.substring(0, 500);
+                charCount.textContent = 500;
+            }
+            
+            if (length > 450) {
+                charCount.style.color = '#f44336';
+            } else if (length > 350) {
+                charCount.style.color = '#ff9800';
+            } else {
+                charCount.style.color = '#999';
+            }
+        });
+
+        // Form submission
+        document.getElementById('feedbackForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value.trim();
+            const message = document.getElementById('message').value.trim();
+            
+            if (!name || !message) {
+                showError('Please fill in all fields.');
+                return;
+            }
+
+            if (name.length > 50) {
+                showError('Name must be 50 characters or less.');
+                return;
+            }
+
+            if (message.length > 500) {
+                showError('Message must be 500 characters or less.');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('success').style.display = 'none';
+
+            try {
+                // Send to Firebase
+                const messagesRef = ref(database, 'thegame/messages');
+                await push(messagesRef, {
+                    name: name,
+                    message: message,
+                    timestamp: Date.now()
+                });
+
+                // Show success
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('success').style.display = 'block';
+                
+                // Reset form after a delay
+                setTimeout(() => {
+                    document.getElementById('feedbackForm').reset();
+                    document.getElementById('success').style.display = 'none';
+                    document.getElementById('submitBtn').disabled = false;
+                    charCount.textContent = '0';
+                    charCount.style.color = '#999';
+                }, 3000);
+
+            } catch (error) {
+                console.error('Error sending feedback:', error);
+                showError('Failed to send feedback. Please try again.');
+            }
+        });
+
+        function showError(message) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').innerHTML = `<span class="emoji">❌</span>${message}`;
+            document.getElementById('submitBtn').disabled = false;
+            
+            setTimeout(() => {
+                document.getElementById('error').style.display = 'none';
+            }, 5000);
+        }
+
+        // Auto-focus on name field
+        document.getElementById('name').focus();
+
+        // Add some interactive effects
+        const inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(input => {
+            input.addEventListener('focus', function() {
+                this.parentElement.style.transform = 'translateY(-2px)';
+            });
+            
+            input.addEventListener('blur', function() {
+                this.parentElement.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html>
