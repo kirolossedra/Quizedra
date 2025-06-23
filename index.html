@@ -189,7 +189,7 @@
     </div>
 
     <!-- QR Code Library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     
     <!-- Firebase SDK -->
     <script type="module">
@@ -211,14 +211,16 @@
 
         // Generate QR Code
         const currentUrl = window.location.href;
-        const feedbackUrl = currentUrl.replace('index.html', 'index2.html').replace(/\/$/, '/index2.html');
+        const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
+        const feedbackUrl = baseUrl + 'index2.html';
         
-        QRCode.toCanvas(document.getElementById('qrcode'), feedbackUrl, {
+        new QRCode(document.getElementById('qrcode'), {
+            text: feedbackUrl,
             width: 200,
             height: 200,
             colorDark: '#667eea',
             colorLight: '#ffffff',
-            margin: 2
+            correctLevel: QRCode.CorrectLevel.H
         });
 
         // Bubble sound effect
